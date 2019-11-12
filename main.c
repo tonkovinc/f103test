@@ -47,7 +47,8 @@ ADC_HandleTypeDef hadc1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-volatile uint8_t kV; 
+uint8_t kV; 
+uint32_t adcResult = 0;
 
 /* USER CODE END PV */
 
@@ -62,7 +63,8 @@ static void MX_ADC1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+#define ADC_2_9V_VALUE  3299
+#define ADC_3_6v_VALUE  4095
 /* USER CODE END 0 */
 
 /**
@@ -98,7 +100,20 @@ int main(void)
   MX_USART1_UART_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-	FLASH_EraseInitTypeDef EraseInitStruct;
+	uint8_t kV = *(uint8_t*)0x0800F800;  
+	/* USER CODE END 2 */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+		HAL_ADC_Start(&hadc1);
+    HAL_ADC_PollForConversion(&hadc1, 100);
+    adcResult = HAL_ADC_GetValue(&hadc1);
+    HAL_ADC_Stop(&hadc1);
+		if (adcResult < ADC_2_9V_VALUE)
+		{
+			FLASH_EraseInitTypeDef EraseInitStruct;
 			uint32_t PAGEError = 0;
 			EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
 			EraseInitStruct.PageAddress = 0x0800F800;
@@ -107,12 +122,7 @@ int main(void)
 			HAL_FLASHEx_Erase(&EraseInitStruct,&PAGEError);   
 			HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, 0x0800F800, kV );  
 			HAL_FLASH_Lock();
-	/* USER CODE END 2 */
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
+		}
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
