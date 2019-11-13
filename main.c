@@ -43,11 +43,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-uint8_t kV; 
+volatile uint8_t kV = 50;
 uint32_t adcResult = 0;
 
 /* USER CODE END PV */
@@ -100,7 +99,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-	uint8_t kV = *(uint8_t*)0x0800F800;  
+	kV = *(uint8_t*)0x0800F800;  
 	/* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -111,7 +110,7 @@ int main(void)
     HAL_ADC_PollForConversion(&hadc1, 100);
     adcResult = HAL_ADC_GetValue(&hadc1);
     HAL_ADC_Stop(&hadc1);
-		if (adcResult < ADC_2_9V_VALUE)
+		if ((adcResult < ADC_2_9V_VALUE) | (adcResult > ADC_3_6v_VALUE))
 		{
 			FLASH_EraseInitTypeDef EraseInitStruct;
 			uint32_t PAGEError = 0;
